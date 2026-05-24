@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block contenido %}
+<div class="bg-white border border-pink-50 rounded-2xl p-6 shadow-sm">
+    <h3 class="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><i data-lucide="users" class="text-pink-400"></i> Directorio de Autores</h3>
+    <ul class="divide-y divide-slate-50 m-0">
+        {% for autor in autores %}
+            <li class="py-3 flex justify-between items-center text-sm">
+                <span class="font-semibold text-slate-700">{{ autor.nombre }}</span>
+                <span class="text-xs text-slate-400">Registrado en sistema</span>
+            </li>
+        {% empty %}
+            <li class="py-4 text-slate-400 italic text-sm">No hay autores registrados.</li>
+        {% endfor %}
+    </ul>
+</div>
+<script>lucide.createIcons();</script>
+{% endblock %}

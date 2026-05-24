@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="max-w-xl mx-auto">
+    <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-pink-400 mb-4 transition">
+        <i data-lucide="arrow-left" class="w-4 h-4"></i> Volver al Tablero
+    </a>
+
+    <div class="bg-white border border-pink-100/60 rounded-2xl p-6 shadow-sm">
+        <h3 class="text-xl font-bold text-slate-800 mb-1">{{ accion }} Libro</h3>
+        <p class="text-xs text-slate-400 mb-6">Completa los campos obligatorios para actualizar el catálogo relacional.</p>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-4 m-0">
+            {% csrf_token %}
+            
+            {% for field in form %}
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-1.5">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <p class="text-xs text-red-500 mt-1 font-medium">{{ field.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div class="pt-4 flex gap-3">
+                <button type="submit" class="flex-1 bg-pink-400 hover:bg-pink-500 text-white font-semibold text-sm py-2.5 rounded-xl transition shadow-sm">
+                    Guardar Cambios
+                </button>
+                <a href="{% url 'dashboard' %}" class="px-4 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-100 text-slate-500 rounded-xl text-sm font-medium text-center transition">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

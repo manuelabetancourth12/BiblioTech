@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+    <div>
+        <h2 class="text-2xl font-bold tracking-tight text-slate-800">Catálogo General de Libros</h2>
+        <p class="text-sm text-slate-400">Explora la colección completa y gestiona tus reservas en línea.</p>
+    </div>
+    
+    <form method="get" action="{% url 'lista_libros' %}" class="flex gap-2 w-full md:w-96 m-0">
+        <div class="relative flex-1">
+            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+            <input 
+                type="search" 
+                name="q" 
+                placeholder="Buscar por título, autor, categoría..." 
+                value="{{ request.GET.q|default:'' }}"
+                class="w-full pl-10 pr-4 py-2 rounded-xl border border-pink-100 bg-white text-sm text-slate-800 focus:outline-none focus:border-pink-300 transition"
+            >
+        </div>
+        <button type="submit" class="bg-pink-400 hover:bg-pink-500 text-white font-semibold text-sm px-4 py-2 rounded-xl transition shadow-sm shrink-0">
+            Buscar
+        </button>
+    </form>
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+    {% for libro in libros %}
+        <div class="bg-white border border-pink-50 rounded-2xl shadow-sm overflow-hidden flex flex-col h-full group hover:shadow-md transition duration-200">
+            <div class="relative h-64 bg-pink-50/20 flex items-center justify-center overflow-hidden border-b border-pink-50">
+                {% if libro.imagen_portada %}
+                    <img src="{{ libro.imagen_portada.url }}" alt="{{ libro.titulo }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                {% else %}
+                    <div class="flex flex-col items-center gap-2 text-pink-300">
+                        <i data-lucide="book-open-check" class="w-10 h-10 stroke-[1.5]"></i>
+                        <span class="text-xs font-medium">Sin Portada Registrada</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="p-5 flex flex-col flex-1">
+                <h5 class="text-base font-bold text-slate-800 leading-snug mb-2 transition hover:text-pink-500" title="{{ libro.titulo }}">{{ libro.titulo }}</h5>
+                
+                <div class="space-y-1.5 text-xs text-slate-500 mb-5">
+                    <p class="flex items-center gap-2 truncate">
+                        <i data-lucide="user" class="w-3.5 h-3.5 text-pink-300 shrink-0"></i>
+                        <span><strong>Autor:</strong> {% if libro.autor %}{{ libro.autor.nombre }}{% else %}<span class="italic text-slate-300">No definido</span>{% endif %}</span>
+                    </p>
+                    <p class="flex items-center gap-2 truncate">
+                        <i data-lucide="tag" class="w-3.5 h-3.5 text-pink-300 shrink-0"></i>
+                        <span><strong>Categoría:</strong> <span class="text-pink-500 font-medium">{% if libro.categoria %}{{ libro.categoria.nombre }}{% else %}General{% endif %}</span></span>
+                    </p>
+                </div>
+
+                <div class="mt-auto space-y-2">
+                    {% if libro.estado == 'disponible' %}
+                        <div class="w-full text-center bg-emerald-50 border border-emerald-100 text-emerald-600 font-semibold text-xs py-2 rounded-xl">
+                            ● Disponible
+                        </div>
+                        
+                        {% if user.is_authenticated and not user.is_staff %}
+                            <a href="{% url 'reservar_libro' libro.pk %}" class="flex items-center justify-center gap-2 w-full bg-pink-400 hover:bg-pink-500 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-sm">
+                                <i data-lucide="calendar-plus" class="w-3.5 h-3.5"></i>
+                                Reservar Libro
+                            </a>
+                        {% endif %}
+                        
+                    {% elif libro.estado == 'prestado' %}
+                        <div class="w-full text-center bg-amber-50 border border-amber-100 text-amber-600 font-semibold text-xs py-2 rounded-xl">
+                            ● Prestado
+                        </div>
+                    {% else %}
+                        <div class="w-full text-center bg-red-50 border border-red-100 text-red-600 font-semibold text-xs py-2 rounded-xl">
+                            ● Retrasado
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="col-span-full bg-white border border-pink-50 rounded-2xl p-12 text-center shadow-sm">
+            <i data-lucide="folder-search" class="w-12 h-12 text-pink-200 mx-auto mb-3"></i>
+            <p class="text-slate-600 font-medium">No se encontraron libros en el catálogo.</p>
+            <p class="text-slate-400 text-xs mt-1">Prueba cambiando los términos de búsqueda.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<script>
+    lucide.createIcons();
+</script>
+{% endblock %}

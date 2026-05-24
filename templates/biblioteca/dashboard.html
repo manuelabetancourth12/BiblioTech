@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block contenido %}
+<div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 mb-6">
+    <div>
+        <h2 class="text-2xl font-bold tracking-tight text-slate-800">Hola, {{ user.username }} ✨</h2>
+        <p class="text-sm text-slate-400">
+            {% if user.is_staff %}
+                Panel de control de Administrador: Gestiona el catálogo, autores y categorías de la biblioteca.
+            {% else %}
+                Panel de Cliente: Explora tus lecturas y el estado de tus libros.
+            {% endif %}
+        </p>
+    </div>
+    
+    {% if user.is_staff %}
+        <div class="flex flex-wrap gap-2 shrink-0">
+            <a href="{% url 'exportar_libros_excel' %}" class="inline-flex items-center gap-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                <i data-lucide="download-cloud" class="w-4 h-4"></i>
+                Exportar Excel
+            </a>
+            <a href="{% url 'crear_autor' %}" class="inline-flex items-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                + Autor
+            </a>
+            <a href="{% url 'crear_categoria' %}" class="inline-flex items-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-600 font-semibold text-sm px-4 py-2.5 rounded-xl transition">
+                <i data-lucide="folder-plus" class="w-4 h-4"></i>
+                + Categoría
+            </a>
+            <a href="{% url 'crear_libro' %}" class="inline-flex items-center gap-2 bg-pink-400 hover:bg-pink-500 text-white font-semibold text-sm px-4 py-2.5 rounded-xl transition shadow-sm">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                Agregar Libro
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+    <div class="bg-[#fff0f3] border border-pink-100/50 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <div>
+            <p class="text-xs text-pink-600 font-semibold uppercase tracking-wide">Total de Libros</p>
+            <h3 class="text-3xl font-bold mt-1 text-slate-800 tracking-tight">{{ total_libros }}</h3>
+        </div>
+        <div class="p-3 bg-white rounded-xl text-pink-400 shadow-sm"><i data-lucide="book" class="w-6 h-6"></i></div>
+    </div>
+    
+    <div class="bg-[#e8f0fe] border border-blue-100/50 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <div>
+            <p class="text-xs text-blue-600 font-semibold uppercase tracking-wide">Préstamos Activos</p>
+            <h3 class="text-3xl font-bold mt-1 text-slate-800 tracking-tight">{{ libros_prestados }}</h3>
+        </div>
+        <div class="p-3 bg-white rounded-xl text-blue-400 shadow-sm"><i data-lucide="bookmark" class="w-6 h-6"></i></div>
+    </div>
+
+    <div class="bg-[#fceade] border border-orange-100/50 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <div>
+            <p class="text-xs text-orange-600 font-semibold uppercase tracking-wide">Libros Retrasados</p>
+            <h3 class="text-3xl font-bold mt-1 text-slate-800 tracking-tight">0</h3>
+        </div>
+        <div class="p-3 bg-white rounded-xl text-orange-400 shadow-sm"><i data-lucide="alert-circle" class="w-6 h-6"></i></div>
+    </div>
+
+    <div class="bg-[#f3e8ff] border border-purple-100/50 p-5 rounded-2xl shadow-sm flex items-center justify-between">
+        <div>
+            <p class="text-xs text-purple-600 font-semibold uppercase tracking-wide">Sanciones Activas</p>
+            <h3 class="text-3xl font-bold mt-1 text-slate-800 tracking-tight">0</h3>
+        </div>
+        <div class="p-3 bg-white rounded-xl text-purple-400 shadow-sm"><i data-lucide="user-x" class="w-6 h-6"></i></div>
+    </div>
+</div>
+
+<div class="space-y-6 mb-8">
+    {% if user.is_staff %}
+        <div class="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-50 flex items-center justify-between">
+                <h4 class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-pink-400"></i> Panel Operativo: Últimos Libros Registrados
+                </h4>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse m-0 text-sm text-slate-600">
+                    <thead>
+                        <tr class="bg-slate-50/70 text-[11px] font-bold tracking-wider text-slate-400 uppercase border-b border-slate-100">
+                            <th class="p-4">Título del Libro</th>
+                            <th class="p-4">Autor</th>
+                            <th class="p-4">Categoría</th>
+                            <th class="p-4">Estado</th>
+                            <th class="p-4 text-right">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-50">
+                        {% for libro in libros_lista %}
+                            <tr class="hover:bg-pink-50/10 transition">
+                                <td class="p-4 font-semibold text-slate-800">{{ libro.titulo }}</td>
+                                <td class="p-4">{% if libro.autor %}{{ libro.autor.nombre }}{% else %}<span class="text-slate-300 italic">No asignado</span>{% endif %}</td>
+                                <td class="p-4"><span class="text-xs font-medium text-pink-500 bg-pink-50 px-2 py-1 rounded-md">{% if libro.categoria %}{{ libro.categoria.nombre }}{% else %}General{% endif %}</span></td>
+                                <td class="p-4">
+                                    {% if libro.estado == 'disponible' %}
+                                        <span class="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">● Disponible</span>
+                                    {% else %}
+                                        <span class="text-[11px] font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">● Prestado</span>
+                                    {% endif %}
+                                </td>
+                                <td class="p-4 text-right flex items-center justify-end gap-2">
+                                    {% if libro.estado == 'prestado' %}
+                                        <a href="{% url 'devolver_libro' libro.pk %}" class="p-1.5 text-emerald-500 hover:bg-emerald-50 rounded-lg transition" title="Registrar Devolución">
+                                            <i data-lucide="book-open-check" class="w-4 h-4"></i>
+                                        </a>
+                                    {% endif %}
+
+                                    <a href="{% url 'editar_libro' libro.pk %}" class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition" title="Editar">
+                                        <i data-lucide="pencil" class="w-4 h-4"></i>
+                                    </a>
+                                    <form action="{% url 'eliminar_libro' libro.pk %}" method="post" class="m-0 inline" onsubmit="return confirm('¿Eliminar permanente?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition" title="Eliminar">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="p-8 text-center text-slate-400 italic">No hay libros registrados aún.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% else %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-slate-700 mb-2 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-yellow-400"></i> Perfil del Lector
+                    </h4>
+                    <p class="text-xs text-slate-400 mb-4">Tienes acceso autorizado para revisar libros y gestionar tus reservas.</p>
+                    <div class="bg-pink-50/40 border border-pink-100/30 rounded-xl p-4 text-sm text-slate-600">
+                        <p class="mb-1"><strong>Código de Lector:</strong> #00{{ user.id }}</p>
+                        <p class="mb-0"><strong>Historial de Multas:</strong> Al día (Sin penalizaciones) ✅</p>
+                    </div>
+                </div>
+                <a href="{% url 'lista_libros' %}" class="w-full text-center mt-6 bg-pink-400 hover:bg-pink-500 text-white font-medium text-sm py-2.5 rounded-xl transition shadow-sm">
+                    Explorar el Catálogo de Libros
+                </a>
+            </div>
+            
+            <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                <h4 class="text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-4 h-4 text-blue-400"></i> Últimas Adquisiciones
+                </h4>
+                <ul class="space-y-3 m-0 text-xs text-slate-500">
+                    {% for libro in libros_lista %}
+                        <li class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50">
+                            <span class="font-medium text-slate-700 truncate w-40">{{ libro.titulo }}</span>
+                            <span class="text-[10px] text-pink-500 uppercase font-semibold">{% if libro.categoria %}{{ libro.categoria.nombre }}{% else %}General{% endif %}</span>
+                        </li>
+                    {% empty %}
+                        <li class="italic text-slate-400">No hay novedades por el momento.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+        <h4 class="text-sm font-bold mb-4 flex items-center gap-2 text-slate-700">
+            <i data-lucide="trending-up" class="w-4 h-4 text-pink-400"></i> Volumen por Categoría
+        </h4>
+        <div class="space-y-4" id="categories-list-container"></div>
+    </div>
+
+    <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm flex flex-col">
+        <h4 class="text-sm font-bold mb-4 flex items-center gap-2 text-slate-700">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-blue-400"></i> Disponibilidad Física Total
+        </h4>
+        <div class="flex-1 flex items-end justify-around gap-2 h-48 pt-4" id="bars-chart-container"></div>
+    </div>
+</div>
+
+{{ cat_labels|json_script:"cat-labels-data" }}
+{{ cat_valores|json_script:"cat-valores-data" }}
+{{ est_labels|json_script:"est-labels-data" }}
+{{ est_valores|json_script:"est-valores-data" }}
+
+<script>
+    const catLabels = JSON.parse(document.getElementById('cat-labels-data').textContent);
+    const catValores = JSON.parse(document.getElementById('cat-valores-data').textContent);
+    const estLabels = JSON.parse(document.getElementById('est-labels-data').textContent);
+    const estValores = JSON.parse(document.getElementById('est-valores-data').textContent);
+
+    // Render del primer gráfico dinámico
+    const listContainer = document.getElementById('categories-list-container');
+    if (catLabels && catLabels.length > 0) {
+        const maxVal = Math.max(...catValores, 1);
+        catLabels.forEach((label, idx) => {
+            const val = catValores[idx];
+            const percentage = (val / maxVal) * 100;
+            listContainer.innerHTML += `
+                <div>
+                    <div class="flex justify-between text-xs font-medium mb-1">
+                        <span class="text-slate-600">${label}</span>
+                        <span class="text-slate-800 font-bold">${val}</span>
+                    </div>
+                    <div class="w-full bg-slate-50 rounded-full h-2.5">
+                        <div class="bg-pink-300 h-2.5 rounded-full transition-all duration-500" style="width: ${percentage}%"></div>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        listContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No se registran categorías.</p>`;
+    }
+
+    // Render del segundo gráfico dinámico
+    const chartContainer = document.getElementById('bars-chart-container');
+    if (estLabels && estLabels.length > 0) {
+        const maxEstVal = Math.max(...estValores, 1);
+        estLabels.forEach((label, idx) => {
+            const val = estValores[idx];
+            const heightPercentage = (val / maxEstVal) * 100;
+            chartContainer.innerHTML += `
+                <div class="flex flex-col items-center flex-1 h-full justify-end">
+                    <span class="text-[11px] font-bold mb-1 text-blue-400">${val}</span>
+                    <div class="w-12 bg-blue-200 rounded-t-lg transition-all duration-500" style="height: ${heightPercentage}%"></div>
+                    <span class="text-[10px] text-slate-400 mt-2 text-center truncate w-full font-medium">${label}</span>
+                </div>
+            `;
+        });
+    } else {
+        chartContainer.innerHTML = `<p class="text-xs text-slate-400 italic">No se registran datos.</p>`;
+    }
+
+    lucide.createIcons();
+</script>
+{% endblock %}
